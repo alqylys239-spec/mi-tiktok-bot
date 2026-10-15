@@ -2,14 +2,15 @@ import os
 import requests
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from flask import Flask
+from threading import Thread
 
-# جلب توكن البوت تلقائياً من منصة الاستضافة أماناً لك
+# إعداد بوت تليجرام
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# ضع هنا معرف قناتك ومعرف القروب الخاص بك (مع علامة @)
-CHANNEL_USERNAME = "@shbin4"  
-GROUP_USERNAME = "@Libya_Tbadl1"      
+CHANNEL_USERNAME = "@shbin4"  # استبدل بمعرف قناتك
+GROUP_USERNAME = "@Libya_Tbadl1"      # استبدل بمعرف قروبك
 
 def check_sub(user_id):
     try:
@@ -72,5 +73,23 @@ def handle_tiktok(message):
     except Exception as e:
         bot.edit_message_text("حدث خطأ أثناء تحميل الفيديو، حاول مجدداً.", message.chat.id, msg.message_id)
 
-if __name__ == "__main__":
+
+# --- خادم ويب وهمي لكي يرضى موقع Render ولا يتوقف البوت ---
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Bot is running 24/7!"
+
+def run_web():
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
+
+def start_bot():
     bot.infinity_polling()
+
+if __name__ == "__main__":
+    # تشغيل سيرفر الويب في مسار خلفي
+    t = Thread(target=run_web)
+    t.start()
+    # تشغيل البوت الأساسي
+    start_bot()
